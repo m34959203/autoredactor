@@ -1,4 +1,5 @@
 import React from "react";
+import AIChat from "./ai-chat";
 
 // Inline Button Component
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -292,12 +293,147 @@ const Hero = React.memo(() => {
 
 Hero.displayName = "Hero";
 
+// AI Demo Section Component
+const AIDemoSection = React.memo(() => {
+  const [showChat, setShowChat] = React.useState(false);
+
+  return (
+    <section className="relative py-20 px-6 bg-gradient-to-b from-black via-gray-900 to-black">
+      <div className="max-w-7xl mx-auto">
+        {/* Section Header */}
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-purple-500/30 bg-purple-500/10 backdrop-blur-sm mb-6">
+            <span className="text-xs text-purple-400 font-medium">AI POWERED</span>
+            <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">
+              FREE
+            </span>
+          </div>
+
+          <h2
+            className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-6"
+            style={{
+              background: "linear-gradient(to bottom, #ffffff, #ffffff, rgba(255, 255, 255, 0.6))",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              letterSpacing: "-0.02em"
+            }}
+          >
+            Experience AI Chat
+          </h2>
+
+          <p className="text-base md:text-lg text-gray-400 max-w-2xl mx-auto mb-8">
+            Talk with powerful AI models for free. Choose from Groq, Gemini, or HuggingFace.
+          </p>
+
+          {!showChat && (
+            <Button
+              type="button"
+              variant="gradient"
+              size="lg"
+              onClick={() => setShowChat(true)}
+              className="rounded-lg"
+            >
+              Try AI Chat Now
+              <ArrowRight size={20} />
+            </Button>
+          )}
+        </div>
+
+        {/* Chat Interface */}
+        {showChat && (
+          <div className="max-w-4xl mx-auto" style={{ height: '600px' }}>
+            <AIChat
+              provider="groq"
+              onError={(error) => console.error('AI Error:', error)}
+            />
+          </div>
+        )}
+
+        {/* Features Grid */}
+        <div className="grid md:grid-cols-3 gap-6 mt-16">
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700 backdrop-blur-sm hover:border-purple-500/50 transition-all">
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-2">Lightning Fast</h3>
+            <p className="text-gray-400 text-sm">
+              Powered by Groq's ultra-fast inference engine. Get responses in milliseconds.
+            </p>
+          </div>
+
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700 backdrop-blur-sm hover:border-blue-500/50 transition-all">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-2">100% Free</h3>
+            <p className="text-gray-400 text-sm">
+              No credit card required. Use free tier API keys from multiple providers.
+            </p>
+          </div>
+
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700 backdrop-blur-sm hover:border-green-500/50 transition-all">
+            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-2">Multiple Models</h3>
+            <p className="text-gray-400 text-sm">
+              Choose from Groq, Google Gemini, or HuggingFace models. Switch anytime.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+});
+
+AIDemoSection.displayName = "AIDemoSection";
+
 // Main Component
 export default function Component() {
   return (
     <main className="min-h-screen bg-black text-white">
       <Navigation />
       <Hero />
+      <AIDemoSection />
     </main>
   );
 }
