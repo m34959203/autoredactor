@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import AIService, { type AIProvider } from '@/services/ai-service';
+import AIService, { type AIModel, MODELS } from '@/services/ai-service';
 
 // Icon Components
 const Send = ({ className = "", size = 20 }: { className?: string; size?: number }) => (
@@ -88,16 +88,16 @@ interface Message {
 }
 
 interface AIChatProps {
-  provider?: AIProvider;
+  model?: AIModel;
   apiKey?: string;
   onError?: (error: string) => void;
 }
 
-export default function AIChat({ provider = 'groq', apiKey, onError }: AIChatProps) {
+export default function AIChat({ model = 'llama-3.1-8b', apiKey, onError }: AIChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: 'Привет! Я AI ассистент. Чем могу помочь?',
+      content: 'Привет! Я AI ассистент на базе OpenRouter. Могу общаться через разные модели: GPT-4, Claude, Llama и другие. Чем могу помочь?',
       timestamp: new Date(),
     },
   ]);
@@ -105,7 +105,7 @@ export default function AIChat({ provider = 'groq', apiKey, onError }: AIChatPro
   const [isLoading, setIsLoading] = useState(false);
   const [showApiKeyInput, setShowApiKeyInput] = useState(!apiKey);
   const [tempApiKey, setTempApiKey] = useState('');
-  const [currentProvider, setCurrentProvider] = useState<AIProvider>(provider);
+  const [currentModel, setCurrentModel] = useState<AIModel>(model);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -121,7 +121,7 @@ export default function AIChat({ provider = 'groq', apiKey, onError }: AIChatPro
 
     const effectiveApiKey = apiKey || tempApiKey;
     if (!effectiveApiKey) {
-      onError?.('Please enter an API key');
+      onError?.('Please enter an OpenRouter API key');
       setShowApiKeyInput(true);
       return;
     }
@@ -138,8 +138,8 @@ export default function AIChat({ provider = 'groq', apiKey, onError }: AIChatPro
 
     try {
       const aiService = new AIService({
-        provider: currentProvider,
         apiKey: effectiveApiKey,
+        model: currentModel,
       });
 
       const response = await aiService.chat([
@@ -164,7 +164,7 @@ export default function AIChat({ provider = 'groq', apiKey, onError }: AIChatPro
         ...prev,
         {
           role: 'assistant',
-          content: `Ошибка: ${errorMessage}. Проверьте API ключ и попробуйте снова.`,
+          content: `❌ Ошибка: ${errorMessage}\n\nПроверьте API ключ и попробуйте снова.`,
           timestamp: new Date(),
         },
       ]);
@@ -180,43 +180,60 @@ export default function AIChat({ provider = 'groq', apiKey, onError }: AIChatPro
     }
   };
 
-  const providerInfo = {
-    groq: { name: 'Groq (Llama 3.3 70B)', color: 'text-orange-400' },
-    gemini: { name: 'Google Gemini Pro', color: 'text-blue-400' },
-    huggingface: { name: 'HuggingFace (Llama 3.2)', color: 'text-yellow-400' },
-  };
+  const modelInfo = MODELS[currentModel];
+  const pricingColor =
+    modelInfo.pricing === 'Free' ? 'text-green-400' :
+    modelInfo.pricing === 'Very Low' ? 'text-blue-400' :
+    modelInfo.pricing === 'Low' ? 'text-yellow-400' :
+    'text-orange-400';
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-2xl border border-gray-700 shadow-2xl overflow-hidden">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-blue-600/20 backdrop-blur-md border-b border-gray-700 p-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 mb-3">
           <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg">
             <Sparkles size={24} className="text-white" />
           </div>
           <div className="flex-1">
             <h3 className="text-white font-semibold text-lg flex items-center gap-2">
               AI Chat Assistant
-              <span className="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded-full border border-green-500/30">
-                FREE
+              <span className={`text-xs px-2 py-1 rounded-full border ${
+                modelInfo.pricing === 'Free'
+                  ? 'bg-green-500/20 text-green-400 border-green-500/30'
+                  : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+              }`}>
+                {modelInfo.pricing === 'Free' ? 'FREE' : modelInfo.pricing}
               </span>
             </h3>
-            <p className={`text-xs ${providerInfo[currentProvider].color}`}>
-              Powered by {providerInfo[currentProvider].name}
+            <p className="text-xs text-gray-400">
+              {modelInfo.name} by {modelInfo.provider}
             </p>
           </div>
-
-          {/* Provider Selector */}
-          <select
-            value={currentProvider}
-            onChange={(e) => setCurrentProvider(e.target.value as AIProvider)}
-            className="bg-gray-800 text-white text-sm rounded-lg px-3 py-2 border border-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          >
-            <option value="groq">Groq (Fast)</option>
-            <option value="gemini">Gemini</option>
-            <option value="huggingface">HuggingFace</option>
-          </select>
         </div>
+
+        {/* Model Selector */}
+        <select
+          value={currentModel}
+          onChange={(e) => setCurrentModel(e.target.value as AIModel)}
+          className="w-full bg-gray-800 text-white text-sm rounded-lg px-3 py-2 border border-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        >
+          <optgroup label="🆓 Free Models">
+            <option value="llama-3.1-8b">Llama 3.1 8B (Fast & Free)</option>
+            <option value="llama-3.1-70b">Llama 3.1 70B (Powerful & Free)</option>
+          </optgroup>
+          <optgroup label="💰 Premium Models">
+            <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Very Low Cost)</option>
+            <option value="gpt-4-turbo">GPT-4 Turbo (Best Quality)</option>
+            <option value="claude-3-sonnet">Claude 3 Sonnet (Balanced)</option>
+            <option value="claude-3-opus">Claude 3 Opus (Most Capable)</option>
+            <option value="gemini-pro">Gemini Pro 1.5 (Huge Context)</option>
+            <option value="mistral-large">Mistral Large (Fast)</option>
+          </optgroup>
+        </select>
+        <p className="text-xs text-gray-400 mt-2">
+          {modelInfo.description} • {pricingColor && <span className={pricingColor}>{modelInfo.pricing}</span>}
+        </p>
       </div>
 
       {/* API Key Input */}
@@ -224,31 +241,26 @@ export default function AIChat({ provider = 'groq', apiKey, onError }: AIChatPro
         <div className="bg-yellow-500/10 border-b border-yellow-500/30 p-4">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles size={16} className="text-yellow-400" />
-            <p className="text-yellow-400 text-sm font-medium">API Key Required</p>
+            <p className="text-yellow-400 text-sm font-medium">OpenRouter API Key Required</p>
           </div>
           <input
             type="password"
             value={tempApiKey}
             onChange={(e) => setTempApiKey(e.target.value)}
-            placeholder={`Enter ${currentProvider} API key...`}
+            placeholder="Enter your OpenRouter API key..."
             className="w-full bg-gray-800 text-white text-sm rounded-lg px-4 py-2 border border-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           />
           <p className="text-xs text-gray-400 mt-2">
-            Get your free API key from{' '}
+            Get your FREE API key from{' '}
             <a
-              href={
-                currentProvider === 'groq'
-                  ? 'https://console.groq.com'
-                  : currentProvider === 'gemini'
-                  ? 'https://makersuite.google.com/app/apikey'
-                  : 'https://huggingface.co/settings/tokens'
-              }
+              href="https://openrouter.ai/keys"
               target="_blank"
               rel="noopener noreferrer"
               className="text-purple-400 hover:underline"
             >
-              here
+              openrouter.ai/keys
             </a>
+            {' '}• Includes $1 free credit!
           </p>
         </div>
       )}

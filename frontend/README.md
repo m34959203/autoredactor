@@ -1,24 +1,58 @@
-# 🚀 SaaS Landing Page with AI Chat
+# 🚀 SaaS Landing Page with AI Chat (OpenRouter)
 
-A modern, production-ready React landing page template with integrated **FREE** AI chat functionality.
+A modern, production-ready React landing page template with integrated AI chat using **OpenRouter.ai** - access to GPT-4, Claude, Llama, and 100+ AI models through one API!
 
 ## ✨ Features
 
 - 🎨 **Beautiful Landing Page** - Modern SaaS design with gradients and animations
-- 🤖 **AI Chat Integration** - Chat with Groq, Gemini, or HuggingFace AI (FREE!)
+- 🤖 **OpenRouter AI Integration** - Chat with GPT-4, Claude, Llama, and more!
+- 🆓 **Free AI Models** - Llama 3.1 (8B & 70B) completely free
+- 💰 **Pay-as-you-go** - Premium models available (GPT-4, Claude 3)
 - ⚡ **Lightning Fast** - Built with Vite for instant HMR
 - 🎯 **TypeScript** - Fully type-safe codebase
 - 💅 **Tailwind CSS v4** - Latest styling framework
 - 📱 **Fully Responsive** - Works on all devices
 - 🔒 **Secure** - Environment variables for API keys
-- 🎭 **shadcn/ui Structure** - Component organization
+- 🚂 **Railway Ready** - Deploy in 5 minutes!
+
+## 🤖 AI Models Available
+
+### 🆓 Free Models
+- **Llama 3.1 8B** - Fast & Free
+- **Llama 3.1 70B** - Powerful & Free
+
+### 💰 Premium Models
+- **GPT-4 Turbo** - Most capable (OpenAI)
+- **GPT-3.5 Turbo** - Fast & affordable (OpenAI)
+- **Claude 3 Opus** - Best reasoning (Anthropic)
+- **Claude 3 Sonnet** - Balanced (Anthropic)
+- **Gemini Pro 1.5** - Huge context (Google)
+- **Mistral Large** - European AI (Mistral)
 
 ## 🚀 Quick Start
 
 ### Installation
 
 ```bash
+cd frontend
 npm install
+```
+
+### Get OpenRouter API Key (Free!)
+
+1. Go to [openrouter.ai/keys](https://openrouter.ai/keys)
+2. Sign up (free, no credit card needed)
+3. Create API key
+4. **Get $1 free credit!**
+
+### Configure API Key
+
+```bash
+# Copy example env file
+cp .env.example .env
+
+# Add your API key to .env
+VITE_OPENROUTER_API_KEY=sk-or-v1-your-key-here
 ```
 
 ### Development
@@ -27,7 +61,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+Open [http://localhost:5173](http://localhost:5173)
 
 ### Build
 
@@ -38,44 +72,32 @@ npm run build
 ### Preview Production Build
 
 ```bash
-npm run preview
+npm run start
 ```
 
-## 🤖 AI Integration
+## 🚂 Deploy to Railway (5 minutes)
 
-This project includes a fully functional AI chat interface with support for multiple free AI providers!
+This project is **ready to deploy** to Railway.com!
 
-### Supported AI Providers
+### Quick Deploy
 
-1. **Groq** ⚡ (Recommended)
-   - Ultra-fast Llama 3.3 70B model
-   - Get API key: [console.groq.com](https://console.groq.com)
-
-2. **Google Gemini** 🤖
-   - Powerful Gemini Pro model
-   - Get API key: [makersuite.google.com](https://makersuite.google.com/app/apikey)
-
-3. **HuggingFace** 🤗
-   - Open-source Llama models
-   - Get API key: [huggingface.co](https://huggingface.co/settings/tokens)
-
-### Setup AI Chat
-
-1. Copy the example environment file:
-   ```bash
-   cp .env.example .env
+1. Push code to GitHub
+2. Go to [railway.app](https://railway.app)
+3. Create new project from your GitHub repo
+4. Add environment variable:
    ```
-
-2. Get your free API key from any provider (see links above)
-
-3. Add your API key to `.env`:
-   ```env
-   VITE_GROQ_API_KEY=your_api_key_here
+   VITE_OPENROUTER_API_KEY=your_key_here
    ```
+5. Deploy! 🎉
 
-4. Restart dev server and enjoy chatting with AI!
+Railway will:
+- ✅ Auto-detect Node.js project
+- ✅ Build your app
+- ✅ Serve static files
+- ✅ Provide HTTPS URL
+- ✅ $5 free credit/month
 
-📖 **Full AI Documentation**: See [AI_INTEGRATION.md](./AI_INTEGRATION.md) for detailed setup guide.
+📖 **Full Deployment Guide**: See [RAILWAY_DEPLOY.md](./RAILWAY_DEPLOY.md)
 
 ## 📂 Project Structure
 
@@ -84,16 +106,17 @@ frontend/
 ├── src/
 │   ├── components/
 │   │   └── ui/
-│   │       ├── saa-s-template.tsx  # Landing page component
+│   │       ├── saa-s-template.tsx  # Landing page
 │   │       └── ai-chat.tsx          # AI chat component
 │   ├── services/
-│   │   └── ai-service.ts            # AI provider integration
-│   ├── demo.tsx                     # Demo page
-│   ├── App.tsx                      # Main app
-│   └── main.tsx                     # Entry point
-├── .env.example                     # Example environment variables
-├── AI_INTEGRATION.md                # AI integration guide
-├── INTEGRATION_GUIDE.md             # General integration guide
+│   │   └── ai-service.ts            # OpenRouter integration
+│   ├── demo.tsx
+│   ├── App.tsx
+│   └── main.tsx
+├── railway.json                     # Railway config
+├── nixpacks.toml                    # Build config
+├── RAILWAY_DEPLOY.md                # Deployment guide
+├── OPENROUTER_GUIDE.md              # OpenRouter guide
 └── package.json
 ```
 
@@ -103,34 +126,33 @@ frontend/
 - **TypeScript** - Type safety
 - **Vite 7** - Build tool
 - **Tailwind CSS v4** - Styling
-- **AI SDKs** - OpenAI, Google Generative AI
-- **shadcn/ui structure** - Component organization
+- **OpenRouter AI** - Access to 100+ AI models
+- **serve** - Production server
+- **Railway.com** - Deployment platform
 
 ## 🎨 Components
 
 ### Landing Page (`saa-s-template.tsx`)
 
-Features:
 - Responsive navigation with mobile menu
 - Hero section with gradient effects
 - AI demo section with interactive chat
 - Feature cards with hover effects
-- Custom button components with variants
+- Custom button components
 
 ### AI Chat (`ai-chat.tsx`)
 
-Features:
 - Real-time chat interface
-- Multiple AI provider support
+- 8 AI models to choose from
 - Beautiful gradient UI
+- Free & premium model options
 - Message history
 - Loading states
-- Error handling
-- Provider switching
+- Provider information
 
 ## 📝 Usage Examples
 
-### Using the Landing Page
+### Basic Usage
 
 ```tsx
 import Component from "@/components/ui/saa-s-template";
@@ -140,7 +162,7 @@ function App() {
 }
 ```
 
-### Using AI Chat Standalone
+### AI Chat Standalone
 
 ```tsx
 import AIChat from "@/components/ui/ai-chat";
@@ -149,8 +171,8 @@ function MyPage() {
   return (
     <div style={{ height: '600px' }}>
       <AIChat
-        provider="groq"
-        apiKey={process.env.VITE_GROQ_API_KEY}
+        model="llama-3.1-8b"  // Free model!
+        apiKey={import.meta.env.VITE_OPENROUTER_API_KEY}
         onError={(error) => console.error(error)}
       />
     </div>
@@ -158,77 +180,119 @@ function MyPage() {
 }
 ```
 
-## 🎯 Path Aliases
-
-The project uses `@/` alias for cleaner imports:
+### Switch AI Models
 
 ```tsx
-import Component from "@/components/ui/saa-s-template";
-import AIService from "@/services/ai-service";
+// Use free model
+<AIChat model="llama-3.1-8b" />
+
+// Use premium model
+<AIChat model="gpt-4-turbo" />
+
+// Use Claude
+<AIChat model="claude-3-sonnet" />
 ```
 
 ## 🔒 Environment Variables
 
-All environment variables must be prefixed with `VITE_` to be accessible in Vite:
-
 ```env
-VITE_GROQ_API_KEY=your_groq_api_key
-VITE_GEMINI_API_KEY=your_gemini_api_key
-VITE_HUGGINGFACE_API_KEY=your_hf_token
+# Required for AI chat
+VITE_OPENROUTER_API_KEY=sk-or-v1-your-key-here
 ```
 
-**⚠️ Important**: Never commit `.env` files to git!
+**⚠️ Important**:
+- Never commit `.env` files to git!
+- Use Railway Variables for production
+- Prefix with `VITE_` for Vite projects
+
+## 💰 Pricing
+
+### Development (Free)
+- Use free Llama models
+- No credit card needed
+- Perfect for testing
+
+### Production
+- **Free tier**: $1 credit on signup
+- **Llama models**: Always FREE
+- **GPT-3.5**: ~$0.002/1K tokens
+- **GPT-4**: ~$0.01/1K tokens
+- **Claude 3**: ~$0.003-0.015/1K tokens
+
+**Example**: 1000 messages with Llama = $0 FREE!
 
 ## 🐛 Troubleshooting
 
-### AI Chat not working?
+### Build Errors
 
-1. Check that you have a valid API key
-2. Verify the key is in `.env` file
-3. Restart the dev server
-4. Check browser console for errors
+```bash
+# Clear cache and rebuild
+rm -rf node_modules dist
+npm install
+npm run build
+```
 
-### Build errors?
+### AI Chat Not Working
 
-1. Clear node_modules: `rm -rf node_modules`
-2. Reinstall: `npm install`
-3. Try building again: `npm run build`
+1. Check API key is valid (starts with `sk-or-v1-`)
+2. Verify environment variable is set
+3. Restart dev server
+4. Try free model first (Llama 3.1 8B)
 
-### Tailwind styles not working?
+### Railway Deployment Issues
 
-1. Check `postcss.config.js` uses `@tailwindcss/postcss`
-2. Verify `index.css` imports Tailwind correctly
-3. Clear cache and rebuild
+1. Make sure `VITE_OPENROUTER_API_KEY` is in Railway Variables
+2. Check build logs in Railway dashboard
+3. Verify `package.json` has `start` script
 
 ## 📚 Documentation
 
-- [AI Integration Guide](./AI_INTEGRATION.md) - Complete AI setup guide
-- [Integration Guide](./INTEGRATION_GUIDE.md) - Project setup guide
+- [🚂 Railway Deployment Guide](./RAILWAY_DEPLOY.md) - Complete deployment guide
+- [🤖 OpenRouter Guide](./OPENROUTER_GUIDE.md) - AI integration guide
+- [📖 Integration Guide](./INTEGRATION_GUIDE.md) - Development guide
 
 ## 🎓 Learn More
 
 - [React Documentation](https://react.dev)
-- [TypeScript Documentation](https://www.typescriptlang.org)
-- [Vite Documentation](https://vite.dev)
-- [Tailwind CSS Documentation](https://tailwindcss.com)
-- [Groq Documentation](https://console.groq.com/docs)
-- [Google Gemini API](https://ai.google.dev)
+- [TypeScript](https://www.typescriptlang.org)
+- [Vite](https://vite.dev)
+- [Tailwind CSS](https://tailwindcss.com)
+- [OpenRouter](https://openrouter.ai/docs)
+- [Railway](https://docs.railway.app)
 
 ## 🤝 Contributing
 
-Contributions are welcome! Feel free to:
-- Add more AI providers
+Contributions welcome! Feel free to:
+- Add more AI features
 - Improve UI components
 - Fix bugs
-- Add features
-- Improve documentation
+- Add documentation
+
+## 🌟 Features Roadmap
+
+- [ ] Conversation history export
+- [ ] Voice input/output
+- [ ] Image generation
+- [ ] Custom system prompts
+- [ ] Dark/Light theme toggle
+- [ ] Markdown rendering
+- [ ] Code syntax highlighting
 
 ## 📄 License
 
-This project is open source and available under the MIT License.
+Open source - MIT License
 
 ---
 
-**Built with ❤️ using React, TypeScript, Tailwind CSS, and AI**
+**Built with ❤️ using React, TypeScript, Tailwind CSS, and OpenRouter AI**
 
-**Powered by**: Groq 🚀 | Google Gemini 🤖 | HuggingFace 🤗
+**Powered by**: OpenRouter.ai 🌐 | Railway.com 🚂
+
+## 🎉 Quick Links
+
+- 🔑 **Get API Key**: [openrouter.ai/keys](https://openrouter.ai/keys)
+- 🚂 **Deploy**: [railway.app](https://railway.app)
+- 📖 **Docs**: [OpenRouter Docs](https://openrouter.ai/docs)
+- 💬 **Support**: [Discord](https://discord.gg/openrouter)
+
+**Ready to deploy?** Follow the [Railway Deployment Guide](./RAILWAY_DEPLOY.md)!
