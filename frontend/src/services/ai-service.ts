@@ -1,6 +1,15 @@
-// AI Service - supports multiple free AI providers
+// AI Service - OpenRouter.ai integration
+// Access multiple AI models through one API key
 
-export type AIProvider = 'groq' | 'gemini' | 'huggingface';
+export type AIModel =
+  | 'gpt-4-turbo'
+  | 'gpt-3.5-turbo'
+  | 'claude-3-opus'
+  | 'claude-3-sonnet'
+  | 'llama-3.1-70b'
+  | 'llama-3.1-8b'
+  | 'mistral-large'
+  | 'gemini-pro';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -8,123 +17,151 @@ interface Message {
 }
 
 interface AIConfig {
-  provider: AIProvider;
   apiKey: string;
+  model?: AIModel;
 }
 
+// Model configurations with details
+export const MODELS = {
+  'gpt-4-turbo': {
+    id: 'openai/gpt-4-turbo',
+    name: 'GPT-4 Turbo',
+    provider: 'OpenAI',
+    description: 'Most capable, best for complex tasks',
+    contextLength: 128000,
+    pricing: 'Low',
+  },
+  'gpt-3.5-turbo': {
+    id: 'openai/gpt-3.5-turbo',
+    name: 'GPT-3.5 Turbo',
+    provider: 'OpenAI',
+    description: 'Fast and efficient, good balance',
+    contextLength: 16385,
+    pricing: 'Very Low',
+  },
+  'claude-3-opus': {
+    id: 'anthropic/claude-3-opus',
+    name: 'Claude 3 Opus',
+    provider: 'Anthropic',
+    description: 'Powerful reasoning, great for analysis',
+    contextLength: 200000,
+    pricing: 'Medium',
+  },
+  'claude-3-sonnet': {
+    id: 'anthropic/claude-3-sonnet',
+    name: 'Claude 3 Sonnet',
+    provider: 'Anthropic',
+    description: 'Balanced performance and speed',
+    contextLength: 200000,
+    pricing: 'Low',
+  },
+  'llama-3.1-70b': {
+    id: 'meta-llama/llama-3.1-70b-instruct',
+    name: 'Llama 3.1 70B',
+    provider: 'Meta',
+    description: 'Open source, powerful and free',
+    contextLength: 131072,
+    pricing: 'Free',
+  },
+  'llama-3.1-8b': {
+    id: 'meta-llama/llama-3.1-8b-instruct',
+    name: 'Llama 3.1 8B',
+    provider: 'Meta',
+    description: 'Fast, efficient, completely free',
+    contextLength: 131072,
+    pricing: 'Free',
+  },
+  'mistral-large': {
+    id: 'mistralai/mistral-large',
+    name: 'Mistral Large',
+    provider: 'Mistral AI',
+    description: 'European AI, great performance',
+    contextLength: 128000,
+    pricing: 'Low',
+  },
+  'gemini-pro': {
+    id: 'google/gemini-pro-1.5',
+    name: 'Gemini Pro 1.5',
+    provider: 'Google',
+    description: 'Google\'s latest, multimodal capable',
+    contextLength: 1000000,
+    pricing: 'Low',
+  },
+} as const;
+
 class AIService {
-  private config: AIConfig;
+  private apiKey: string;
+  private model: AIModel;
+  private baseUrl = 'https://openrouter.ai/api/v1';
 
   constructor(config: AIConfig) {
-    this.config = config;
+    this.apiKey = config.apiKey;
+    this.model = config.model || 'llama-3.1-8b'; // Default to free model
   }
 
+  /**
+   * Send a chat message and get AI response
+   */
   async chat(messages: Message[]): Promise<string> {
     try {
-      switch (this.config.provider) {
-        case 'groq':
-          return await this.chatWithGroq(messages);
-        case 'gemini':
-          return await this.chatWithGemini(messages);
-        case 'huggingface':
-          return await this.chatWithHuggingFace(messages);
-        default:
-          throw new Error('Unsupported AI provider');
+      const modelId = MODELS[this.model].id;
+
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`,
+          'HTTP-Referer': window.location.origin, // Required by OpenRouter
+          'X-Title': 'AI Chat App', // Optional, for OpenRouter analytics
+        },
+        body: JSON.stringify({
+          model: modelId,
+          messages: messages,
+          temperature: 0.7,
+          max_tokens: 2048,
+          top_p: 0.9,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(
+          error.error?.message ||
+          error.error ||
+          `OpenRouter API error: ${response.status}`
+        );
       }
+
+      const data = await response.json();
+      return data.choices[0]?.message?.content || 'No response from AI';
     } catch (error) {
       console.error('AI Service Error:', error);
-      throw error;
-    }
-  }
-
-  private async chatWithGroq(messages: Message[]): Promise<string> {
-    // Groq uses OpenAI-compatible API
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.config.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile', // Fast and free model
-        messages: messages,
-        temperature: 0.7,
-        max_tokens: 1024,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Groq API error: ${error}`);
-    }
-
-    const data = await response.json();
-    return data.choices[0]?.message?.content || 'No response';
-  }
-
-  private async chatWithGemini(messages: Message[]): Promise<string> {
-    // Convert messages to Gemini format
-    const prompt = messages
-      .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
-      .join('\n');
-
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${this.config.apiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
-        }),
+      if (error instanceof Error) {
+        throw error;
       }
-    );
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Gemini API error: ${error}`);
+      throw new Error('Failed to communicate with AI service');
     }
-
-    const data = await response.json();
-    return data.candidates[0]?.content?.parts[0]?.text || 'No response';
   }
 
-  private async chatWithHuggingFace(messages: Message[]): Promise<string> {
-    // Using Hugging Face Inference API
-    const prompt = messages
-      .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
-      .join('\n');
+  /**
+   * Get information about current model
+   */
+  getModelInfo() {
+    return MODELS[this.model];
+  }
 
-    const response = await fetch(
-      'https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-3B-Instruct',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.apiKey}`,
-        },
-        body: JSON.stringify({
-          inputs: prompt,
-          parameters: {
-            max_new_tokens: 512,
-            temperature: 0.7,
-          },
-        }),
-      }
-    );
+  /**
+   * Change the AI model
+   */
+  setModel(model: AIModel) {
+    this.model = model;
+  }
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`HuggingFace API error: ${error}`);
-    }
-
-    const data = await response.json();
-    return data[0]?.generated_text || 'No response';
+  /**
+   * Get all available models
+   */
+  static getAllModels() {
+    return MODELS;
   }
 }
 

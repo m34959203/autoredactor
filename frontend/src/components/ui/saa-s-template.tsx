@@ -344,7 +344,8 @@ const AIDemoSection = React.memo(() => {
         {showChat && (
           <div className="max-w-4xl mx-auto" style={{ height: '600px' }}>
             <AIChat
-              provider="groq"
+              model="llama-3.1-8b"
+              apiKey={import.meta.env.VITE_OPENROUTER_API_KEY}
               onError={(error) => console.error('AI Error:', error)}
             />
           </div>
