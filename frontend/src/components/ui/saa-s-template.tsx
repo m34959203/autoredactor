@@ -1,310 +1,286 @@
-import React from "react";
+import { useState, useRef } from "react";
 
-// Button Component
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "secondary" | "gradient";
-  size?: "default" | "lg";
-  children: React.ReactNode;
+interface UploadedFile {
+  file: File;
+  name: string;
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = "default", size = "default", className = "", children, ...props }, ref) => {
-    const baseStyles = "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50";
+export default function JournalEditor() {
+  const [articles, setArticles] = useState<UploadedFile[]>([]);
+  const [titlePage, setTitlePage] = useState<File | null>(null);
+  const [firstPages, setFirstPages] = useState<File | null>(null);
+  const [endPages, setEndPages] = useState<File | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<string>("");
 
-    const variants = {
-      default: "bg-white text-black hover:bg-gray-100",
-      secondary: "bg-gray-800 text-white hover:bg-gray-700",
-      gradient: "bg-gradient-to-b from-white via-white/95 to-white/60 text-black hover:scale-105 active:scale-95"
-    };
+  const articlesInputRef = useRef<HTMLInputElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const firstInputRef = useRef<HTMLInputElement>(null);
+  const endInputRef = useRef<HTMLInputElement>(null);
 
-    const sizes = {
-      default: "h-10 px-4 py-2 text-sm",
-      lg: "h-12 px-8 text-base"
-    };
+  const handleArticlesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
 
-    return (
-      <button
-        ref={ref}
-        className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
-        {...props}
-      >
-        {children}
-      </button>
-    );
-  }
-);
-
-Button.displayName = "Button";
-
-// Icons
-const FileText = ({ className = "", size = 24 }: { className?: string; size?: number }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-    <polyline points="14 2 14 8 20 8"/>
-    <line x1="16" y1="13" x2="8" y2="13"/>
-    <line x1="16" y1="17" x2="8" y2="17"/>
-    <polyline points="10 9 9 9 8 9"/>
-  </svg>
-);
-
-const Upload = ({ className = "", size = 24 }: { className?: string; size?: number }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-    <polyline points="17 8 12 3 7 8"/>
-    <line x1="12" y1="3" x2="12" y2="15"/>
-  </svg>
-);
-
-const CheckCircle = ({ className = "", size = 24 }: { className?: string; size?: number }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-    <polyline points="22 4 12 14.01 9 11.01"/>
-  </svg>
-);
-
-const Menu = ({ className = "", size = 24 }: { className?: string; size?: number }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <line x1="4" x2="20" y1="12" y2="12"/>
-    <line x1="4" x2="20" y1="6" y2="6"/>
-    <line x1="4" x2="20" y1="18" y2="18"/>
-  </svg>
-);
-
-const X = ({ className = "", size = 24 }: { className?: string; size?: number }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M18 6 6 18"/>
-    <path d="m6 6 12 12"/>
-  </svg>
-);
-
-// Navigation Component
-const Navigation = React.memo(() => {
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-
-  return (
-    <header className="fixed top-0 w-full z-50 border-b border-gray-800/50 bg-black/80 backdrop-blur-md">
-      <nav className="max-w-7xl mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="text-xl font-semibold text-white">Авторедактор Журнала</div>
-
-          <div className="hidden md:flex items-center justify-center gap-8 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <a href="#features" className="text-sm text-white/60 hover:text-white transition-colors">
-              Возможности
-            </a>
-            <a href="#how-it-works" className="text-sm text-white/60 hover:text-white transition-colors">
-              Как работает
-            </a>
-            <a href="#github" className="text-sm text-white/60 hover:text-white transition-colors">
-              GitHub
-            </a>
-          </div>
-
-          <div className="hidden md:flex items-center gap-4">
-            <a href="https://github.com/m34959203/autoredactor" target="_blank" rel="noopener noreferrer">
-              <Button type="button" variant="default" size="default">
-                GitHub
-              </Button>
-            </a>
-          </div>
-
-          <button
-            type="button"
-            className="md:hidden text-white"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-      </nav>
-
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-black/95 backdrop-blur-md border-t border-gray-800/50">
-          <div className="px-6 py-4 flex flex-col gap-4">
-            <a href="#features" className="text-sm text-white/60 hover:text-white transition-colors py-2" onClick={() => setMobileMenuOpen(false)}>
-              Возможности
-            </a>
-            <a href="#how-it-works" className="text-sm text-white/60 hover:text-white transition-colors py-2" onClick={() => setMobileMenuOpen(false)}>
-              Как работает
-            </a>
-            <a href="#github" className="text-sm text-white/60 hover:text-white transition-colors py-2" onClick={() => setMobileMenuOpen(false)}>
-              GitHub
-            </a>
-          </div>
-        </div>
-      )}
-    </header>
-  );
-});
-
-Navigation.displayName = "Navigation";
-
-// Hero Component
-const Hero = React.memo(() => {
-  return (
-    <section className="relative min-h-screen flex flex-col items-center justify-start px-6 py-20 md:py-24">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-
-        * {
-          font-family: 'Poppins', sans-serif;
-        }
-      `}</style>
-
-      <h1
-        className="text-4xl md:text-5xl lg:text-6xl font-medium text-center max-w-3xl px-6 leading-tight mb-6 mt-20"
-        style={{
-          background: "linear-gradient(to bottom, #ffffff, #ffffff, rgba(255, 255, 255, 0.6))",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          backgroundClip: "text",
-          letterSpacing: "-0.05em"
-        }}
-      >
-        Авторедактор Журнала
-      </h1>
-
-      <p className="text-sm md:text-base text-center max-w-2xl px-6 mb-10" style={{ color: '#9ca3af' }}>
-        Автоматизация рутинной работы редактора журнала: сортировка статей, сборка в PDF, формирование содержания
-      </p>
-
-      <div className="flex flex-col sm:flex-row items-center gap-4 relative z-10 mb-16">
-        <a href="https://github.com/m34959203/autoredactor" target="_blank" rel="noopener noreferrer">
-          <Button type="button" variant="gradient" size="lg" className="rounded-lg">
-            Скачать на GitHub
-          </Button>
-        </a>
-        <a href="#features">
-          <Button type="button" variant="secondary" size="lg" className="rounded-lg">
-            Узнать больше
-          </Button>
-        </a>
-      </div>
-    </section>
-  );
-});
-
-Hero.displayName = "Hero";
-
-// Features Section
-const Features = React.memo(() => {
-  const features = [
-    {
-      icon: FileText,
-      title: "Сортировка статей",
-      description: "Автоматическая сортировка по алфавиту: сначала латиница, затем кириллица"
-    },
-    {
-      icon: Upload,
-      title: "Конвертация в PDF",
-      description: "Преобразование статей из Word (.docx) в PDF с нумерацией страниц"
-    },
-    {
-      icon: CheckCircle,
-      title: "Формирование содержания",
-      description: "Автоматическое создание оглавления с указанием страниц"
+    const validFiles: UploadedFile[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.name.endsWith('.docx')) {
+        validFiles.push({ file, name: file.name });
+      }
     }
-  ];
+
+    setArticles(prev => [...prev, ...validFiles]);
+    setError(null);
+  };
+
+  const removeArticle = (index: number) => {
+    setArticles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleBuildJournal = async () => {
+    if (articles.length === 0) {
+      setError("Добавьте хотя бы одну статью (.docx)");
+      return;
+    }
+
+    setIsProcessing(true);
+    setError(null);
+    setProgress("Загрузка файлов...");
+
+    try {
+      const formData = new FormData();
+
+      // Add articles
+      articles.forEach(item => {
+        formData.append('articles', item.file);
+      });
+
+      // Add optional PDFs
+      if (titlePage) formData.append('title_page', titlePage);
+      if (firstPages) formData.append('first_pages', firstPages);
+      if (endPages) formData.append('end_pages', endPages);
+
+      setProgress("Обработка статей...");
+
+      const response = await fetch('/api/build-journal', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Ошибка сервера');
+      }
+
+      setProgress("Скачивание журнала...");
+
+      // Download the PDF
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'journal.pdf';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      setProgress("Готово! Файл скачан.");
+
+      // Reset form after 2 seconds
+      setTimeout(() => {
+        setArticles([]);
+        setTitlePage(null);
+        setFirstPages(null);
+        setEndPages(null);
+        setProgress("");
+        if (articlesInputRef.current) articlesInputRef.current.value = '';
+        if (titleInputRef.current) titleInputRef.current.value = '';
+        if (firstInputRef.current) firstInputRef.current.value = '';
+        if (endInputRef.current) endInputRef.current.value = '';
+      }, 2000);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Произошла ошибка');
+      setProgress("");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
-    <section id="features" className="py-20 px-6 bg-gradient-to-b from-black via-gray-900 to-black">
-      <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-16"
-          style={{
-            background: "linear-gradient(to bottom, #ffffff, rgba(255, 255, 255, 0.7))",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text"
-          }}
-        >
-          Возможности
-        </h2>
-
-        <div className="grid md:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <div key={index} className="p-6 rounded-2xl bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700 backdrop-blur-sm hover:border-purple-500/50 transition-all">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-4">
-                <feature.icon size={24} className="text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
-              <p className="text-gray-400 text-sm">{feature.description}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-});
-
-Features.displayName = "Features";
-
-// How It Works Section
-const HowItWorks = React.memo(() => {
-  return (
-    <section id="how-it-works" className="py-20 px-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-16"
-          style={{
-            background: "linear-gradient(to bottom, #ffffff, rgba(255, 255, 255, 0.7))",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text"
-          }}
-        >
-          Как использовать
-        </h2>
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+            Авторедактор Журнала
+          </h1>
+          <p className="text-gray-400">
+            Автоматическая сборка журнала из статей Word в PDF
+          </p>
+        </div>
 
-        <div className="bg-gray-900/50 rounded-2xl p-8 border border-gray-800">
-          <div className="space-y-6">
+        {/* Main Upload Area */}
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700 p-8 mb-6">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <span className="text-2xl">📄</span>
+            Статьи (обязательно)
+          </h2>
+
+          <div className="border-2 border-dashed border-gray-600 rounded-xl p-8 text-center mb-4 hover:border-blue-500 transition-colors">
+            <input
+              ref={articlesInputRef}
+              type="file"
+              accept=".docx"
+              multiple
+              onChange={handleArticlesUpload}
+              className="hidden"
+              id="articles-upload"
+            />
+            <label htmlFor="articles-upload" className="cursor-pointer">
+              <div className="text-5xl mb-4">📁</div>
+              <p className="text-lg mb-2">Загрузите статьи Word (.docx)</p>
+              <p className="text-sm text-gray-400">Нажмите или перетащите файлы</p>
+            </label>
+          </div>
+
+          {/* Articles List */}
+          {articles.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm text-gray-400 mb-2">Загружено статей: {articles.length}</p>
+              {articles.map((item, index) => (
+                <div key={index} className="flex items-center justify-between bg-gray-900/50 rounded-lg px-4 py-3">
+                  <span className="text-sm truncate flex-1">{item.name}</span>
+                  <button
+                    onClick={() => removeArticle(index)}
+                    className="ml-4 text-red-400 hover:text-red-300 text-xl"
+                    title="Удалить"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Optional PDFs */}
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700 p-8 mb-6">
+          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+            <span className="text-2xl">📎</span>
+            Дополнительные файлы (необязательно)
+          </h2>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            {/* Title Page */}
             <div>
-              <h3 className="text-xl font-semibold text-white mb-2">1. Установка</h3>
-              <pre className="bg-black/50 rounded-lg p-4 text-sm text-gray-300 overflow-x-auto">
-                <code>pip install -r requirements.txt</code>
-              </pre>
+              <label className="block text-sm text-gray-400 mb-2">Титульная страница</label>
+              <input
+                ref={titleInputRef}
+                type="file"
+                accept=".pdf"
+                onChange={(e) => setTitlePage(e.target.files?.[0] || null)}
+                className="block w-full text-sm text-gray-400
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-lg file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-500 file:text-white
+                  hover:file:bg-blue-600
+                  file:cursor-pointer cursor-pointer"
+              />
+              {titlePage && <p className="text-xs text-green-400 mt-1">✓ {titlePage.name}</p>}
             </div>
 
+            {/* First Pages */}
             <div>
-              <h3 className="text-xl font-semibold text-white mb-2">2. Подготовка статей</h3>
-              <p className="text-gray-400 text-sm mb-2">Поместите файлы .docx в папку articles/</p>
-              <ul className="list-disc list-inside text-gray-400 text-sm space-y-1">
-                <li>Первый абзац = название статьи</li>
-                <li>Автоматическая сортировка по алфавиту</li>
-              </ul>
+              <label className="block text-sm text-gray-400 mb-2">Первые страницы</label>
+              <input
+                ref={firstInputRef}
+                type="file"
+                accept=".pdf"
+                onChange={(e) => setFirstPages(e.target.files?.[0] || null)}
+                className="block w-full text-sm text-gray-400
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-lg file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-500 file:text-white
+                  hover:file:bg-blue-600
+                  file:cursor-pointer cursor-pointer"
+              />
+              {firstPages && <p className="text-xs text-green-400 mt-1">✓ {firstPages.name}</p>}
             </div>
 
+            {/* End Pages */}
             <div>
-              <h3 className="text-xl font-semibold text-white mb-2">3. Запуск</h3>
-              <pre className="bg-black/50 rounded-lg p-4 text-sm text-gray-300 overflow-x-auto">
-                <code>python autoeditor.py ./articles ./output</code>
-              </pre>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-semibold text-white mb-2">4. Результат</h3>
-              <p className="text-gray-400 text-sm">Готовый журнал в формате PDF с:</p>
-              <ul className="list-disc list-inside text-gray-400 text-sm space-y-1">
-                <li>Отсортированными статьями</li>
-                <li>Нумерацией страниц</li>
-                <li>Автоматическим содержанием</li>
-              </ul>
+              <label className="block text-sm text-gray-400 mb-2">Последние страницы</label>
+              <input
+                ref={endInputRef}
+                type="file"
+                accept=".pdf"
+                onChange={(e) => setEndPages(e.target.files?.[0] || null)}
+                className="block w-full text-sm text-gray-400
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-lg file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-500 file:text-white
+                  hover:file:bg-blue-600
+                  file:cursor-pointer cursor-pointer"
+              />
+              {endPages && <p className="text-xs text-green-400 mt-1">✓ {endPages.name}</p>}
             </div>
           </div>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-500/10 border border-red-500 rounded-lg p-4 mb-6">
+            <p className="text-red-400 flex items-center gap-2">
+              <span className="text-xl">⚠️</span>
+              {error}
+            </p>
+          </div>
+        )}
+
+        {/* Progress */}
+        {progress && (
+          <div className="bg-blue-500/10 border border-blue-500 rounded-lg p-4 mb-6">
+            <p className="text-blue-400 flex items-center gap-2">
+              <span className="text-xl">⏳</span>
+              {progress}
+            </p>
+          </div>
+        )}
+
+        {/* Build Button */}
+        <button
+          onClick={handleBuildJournal}
+          disabled={isProcessing || articles.length === 0}
+          className={`w-full py-4 rounded-xl font-semibold text-lg transition-all
+            ${isProcessing || articles.length === 0
+              ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+              : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl'
+            }`}
+        >
+          {isProcessing ? '⏳ Обработка...' : '🚀 Собрать журнал'}
+        </button>
+
+        {/* Instructions */}
+        <div className="mt-8 bg-gray-800/30 rounded-xl p-6 border border-gray-700">
+          <h3 className="font-semibold mb-3 flex items-center gap-2">
+            <span className="text-xl">ℹ️</span>
+            Как это работает:
+          </h3>
+          <ol className="space-y-2 text-sm text-gray-400">
+            <li>1. Загрузите статьи в формате .docx (первый абзац = название)</li>
+            <li>2. При необходимости добавьте титульную страницу и дополнительные PDF</li>
+            <li>3. Нажмите "Собрать журнал"</li>
+            <li>4. Система автоматически отсортирует статьи и создаст PDF с содержанием</li>
+          </ol>
+        </div>
       </div>
-    </section>
-  );
-});
-
-HowItWorks.displayName = "HowItWorks";
-
-// Main Component
-export default function Component() {
-  return (
-    <main className="min-h-screen bg-black text-white">
-      <Navigation />
-      <Hero />
-      <Features />
-      <HowItWorks />
-    </main>
+    </div>
   );
 }
