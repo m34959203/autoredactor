@@ -75,6 +75,42 @@ http://localhost
 
 Backend API доступен по адресу: `http://localhost:8000/docs`
 
+## 🚂 Деплой на Railway.app
+
+**Быстрый деплой в production за 5 минут!**
+
+### Метод 1: Через Web UI (рекомендуется)
+
+1. Перейдите на [railway.app](https://railway.app) и создайте новый проект
+2. Подключите GitHub репозиторий
+3. Добавьте PostgreSQL и Redis через `+ New → Database`
+4. Создайте два сервиса: `backend` и `frontend`
+5. Настройте переменные окружения (см. `.env.example`)
+
+**📖 Подробная инструкция**: см. [RAILWAY_DEPLOY.md](./RAILWAY_DEPLOY.md)
+**⚡ Быстрый старт**: см. [QUICK_START_RAILWAY.md](./QUICK_START_RAILWAY.md)
+
+### Ключевые переменные для Railway:
+
+**Backend:**
+```env
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+REDIS_URL=${{Redis.REDIS_URL}}
+OPENROUTER_API_KEY=your-openrouter-key
+AI_MODEL=deepseek/deepseek-chat
+```
+
+**Frontend:**
+```env
+VITE_API_URL=https://your-backend.up.railway.app
+```
+
+### Стоимость
+- $5/месяц бесплатно
+- Затем ~$5-15/месяц для небольших проектов
+
+---
+
 ## 📦 Локальная разработка
 
 ### Backend
