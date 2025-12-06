@@ -77,33 +77,41 @@ Backend API доступен по адресу: `http://localhost:8000/docs`
 
 ## 🚂 Деплой на Railway.app
 
-**Быстрый деплой в production за 5 минут!**
+### Вариант 1: Unified Service (Рекомендуется) ⭐
 
-### Метод 1: Через Web UI (рекомендуется)
+**Один сервис для фронтенда и бекенда - дешевле и проще!**
 
-1. Перейдите на [railway.app](https://railway.app) и создайте новый проект
-2. Подключите GitHub репозиторий
-3. Добавьте PostgreSQL и Redis через `+ New → Database`
-4. Создайте два сервиса: `backend` и `frontend`
-5. Настройте переменные окружения (см. `.env.example`)
+1. Перейдите на [railway.app](https://railway.app)
+2. **New Project** → **Deploy from GitHub** → выберите `autoredactor`
+3. Добавьте **PostgreSQL** и **Redis**: `+ New → Database`
+4. Railway автоматически использует `railway.toml` и `Dockerfile.railway`
+5. Добавьте переменные окружения:
+   ```env
+   DATABASE_URL=${{Postgres.DATABASE_URL}}
+   REDIS_URL=${{Redis.REDIS_URL}}
+   OPENROUTER_API_KEY=ваш-ключ
+   ```
 
-**📖 Подробная инструкция**: см. [RAILWAY_DEPLOY.md](./RAILWAY_DEPLOY.md)
-**⚡ Быстрый старт**: см. [QUICK_START_RAILWAY.md](./QUICK_START_RAILWAY.md)
+**📖 Подробная инструкция**: [RAILWAY_DEPLOY_UNIFIED.md](./RAILWAY_DEPLOY_UNIFIED.md)
+**⚡ Быстрый старт**: [QUICK_START_RAILWAY_UNIFIED.md](./QUICK_START_RAILWAY_UNIFIED.md)
 
-### Ключевые переменные для Railway:
+**Преимущества:**
+- 💰 Дешевле (~$5-10/мес вместо $10-15)
+- 🚀 Быстрее (нет задержек между сервисами)
+- 🔧 Проще (одна конфигурация)
 
-**Backend:**
-```env
-DATABASE_URL=${{Postgres.DATABASE_URL}}
-REDIS_URL=${{Redis.REDIS_URL}}
-OPENROUTER_API_KEY=your-openrouter-key
-AI_MODEL=deepseek/deepseek-chat
-```
+---
 
-**Frontend:**
-```env
-VITE_API_URL=https://your-backend.up.railway.app
-```
+### Вариант 2: Раздельные сервисы
+
+Если нужно масштабировать Frontend и Backend отдельно:
+
+1. Создайте два сервиса: `backend` и `frontend`
+2. Настройте Root Directory для каждого
+3. Используйте Nixpacks билдер
+
+**📖 Инструкция**: [RAILWAY_DEPLOY.md](./RAILWAY_DEPLOY.md)
+**⚡ Быстрый старт**: [QUICK_START_RAILWAY.md](./QUICK_START_RAILWAY.md)
 
 ### Стоимость
 - $5/месяц бесплатно

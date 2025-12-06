@@ -1,11 +1,12 @@
 # Railway.toml configuration for AI Journal Editor
+# Unified service (Frontend + Backend)
 
 [build]
-builder = "NIXPACKS"
-buildCommand = "echo 'Building with Docker Compose setup'"
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.railway"
 
 [deploy]
-startCommand = "docker-compose up"
+startCommand = "/start.sh"
 healthcheckPath = "/health"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"
