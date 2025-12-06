@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { FileUploader } from '@/components/FileUploader/FileUploader';
 import { ArticleCard } from '@/components/ArticleCard/ArticleCard';
 import { Button } from '@/components/ui/button';

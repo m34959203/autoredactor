@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Edit2, Eye, Trash2, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import type { Article } from '@/types';
-import { cn } from '@/lib/utils';
 
 interface ArticleCardProps {
   article: Article;
