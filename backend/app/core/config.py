@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import Optional
+import os
 
 
 class Settings(BaseSettings):
@@ -8,6 +9,12 @@ class Settings(BaseSettings):
 
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Railway provides DATABASE_URL as postgresql://, convert to postgresql+asyncpg://
+        if self.DATABASE_URL.startswith("postgresql://"):
+            self.DATABASE_URL = self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
     # S3 Storage
     S3_ENDPOINT: str = "https://s3.amazonaws.com"
