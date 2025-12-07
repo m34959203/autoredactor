@@ -1,48 +1,46 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import declarative_base
-from app.core.config import settings
+# backend/app/db/database.py
+import os
+import time
+import logging
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine, async_sessionmaker, AsyncSession
 
-# Create async engine
-engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=True,
-    future=True
-)
+logger = logging.getLogger("autoredactor")
 
-# Create async session factory
-async_session_maker = async_sessionmaker(
-    engine,
-    class_=AsyncSession,
-    expire_on_commit=False
-)
+def get_engine() -> AsyncEngine:
+    """Создаёт engine с ретраями — только эта функция используется при старте"""
+    url = os.getenv("DATABASE_URL")
+    if not url:
+        raise RuntimeError("Переменная DATABASE_URL не установлена!")
 
-Base = declarative_base()
-
-
-async def get_db() -> AsyncSession:
-    """Dependency for getting async database sessions."""
-    async with async_session_maker() as session:
+    for attempt in range(1, 21):
         try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
-        finally:
-            await session.close()
+            engine = create_async_engine(
+                url,
+                echo=False,
+                future=True,
+                pool_pre_ping=True,
+                pool_recycle=300,
+            )
+            # Проверка соединения
+            import asyncio
+            async def test():
+                async with engine.begin() as conn:
+                    await conn.execute("SELECT 1")
+            asyncio.run(test())
+            logger.info("Подключение к PostgreSQL установлено")
+            return engine
+        except Exception as e:
+            if attempt == 20:
+                logger.error("Не удалось подключиться к БД после 20 попыток")
+                raise
+            wait = min(2 ** attempt, 30)
+            logger.warning(f"Попытка {attempt}/20: БД недоступна — ждём {wait}с...")
+            time.sleep(wait)
 
-
-async def init_db():
-    """Initialize database tables."""
-    import logging
-    logger = logging.getLogger(__name__)
-
-    try:
-        logger.info(f"Connecting to database: {settings.DATABASE_URL.split('@')[1] if '@' in settings.DATABASE_URL else 'unknown'}")
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        logger.info("Database initialized successfully")
-    except Exception as e:
-        logger.error(f"Database initialization failed: {str(e)}")
-        logger.warning("Continuing startup without database - some features may not work")
-        # Don't raise - allow app to start even if DB fails
+# Создаём sessionmaker (будет инициализирован в lifespan)
+AsyncSessionLocal = async_sessionmaker(
+    bind=None,  # будет заменён в main.py
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autoflush=False,
+)
