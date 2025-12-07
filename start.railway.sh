@@ -1,56 +1,67 @@
 #!/bin/bash
 set -e
 
-echo "🚂 Starting AI Journal Editor on Railway.app"
-
-# Get port from environment (Railway provides $PORT)
+echo "Starting AI Journal Editor on Railway.app"
 PORT=${PORT:-8000}
 BACKEND_PORT=8001
 
-echo "📦 Port: $PORT (Frontend+API)"
-echo "🐍 Backend internal port: $BACKEND_PORT"
+echo "Port: $PORT (Frontend + API proxy)"
+echo "Backend internal port: $BACKEND_PORT"
 
-# Update nginx configuration with actual port
+# ──────────────────────────────────────────────────────────────
+# 1. Настраиваем Nginx — заменяем порты в конфиге
+# ──────────────────────────────────────────────────────────────
 sed -i "s/listen 80;/listen $PORT;/g" /etc/nginx/sites-available/default
 sed -i "s/127.0.0.1:8000/127.0.0.1:$BACKEND_PORT/g" /etc/nginx/sites-available/default
 
-# Test nginx config
-echo "🔍 Testing Nginx configuration..."
+echo "Testing Nginx configuration..."
 nginx -t
 
-# Start nginx in background
-echo "🌐 Starting Nginx..."
+echo "Starting Nginx..."
 nginx -g "daemon off;" &
 NGINX_PID=$!
 
-# Wait a bit for nginx to start
-sleep 2
-
-# Start FastAPI backend
-echo "🐍 Starting FastAPI Backend on port $BACKEND_PORT..."
-cd /app/backend
-uvicorn app.main:app --host 127.0.0.1 --port $BACKEND_PORT &
-BACKEND_PID=$!
-
-# Wait a bit for backend to start
+# Даём Nginx время подняться
 sleep 3
 
-echo "✅ Services started successfully!"
-echo "   - Nginx (Frontend): http://localhost:$PORT"
-echo "   - Backend API: http://localhost:$BACKEND_PORT"
-echo "   - Health check: http://localhost:$PORT/health"
+# ──────────────────────────────────────────────────────────────
+# 2. Запускаем FastAPI — ИСПРАВЛЕННЫЙ ПУТЬ + правильная рабочая директория!
+# ──────────────────────────────────────────────────────────────
+echo "Starting FastAPI Backend на порту $BACKEND_PORT..."
 
-# Function to handle shutdown
+# Самое важное — правильный путь к модулю и рабочая директория!
+cd /app/backend
+
+# Правильная команда (backend.app.main:app — потому что мы в /app/backend)
+exec uvicorn backend.app.main:app \
+    --host 0.0.0.0 \
+    --port $BACKEND_PORT \
+    --workers 1 \
+    --log-level info &
+
+BACKEND_PID=$!
+
+# Ждём немного, чтобы FastAPI успел запуститься и подключиться к БД
+sleep 5
+
+echo "Services started successfully!"
+echo " - Frontend + API: http://localhost:$PORT"
+echo " - Backend (internal): http://localhost:$BACKEND_PORT"
+echo " - Health check: http://localhost:$PORT/health"
+
+# ──────────────────────────────────────────────────────────────
+# 3. Graceful shutdown
+# ──────────────────────────────────────────────────────────────
 shutdown() {
-    echo "🛑 Shutting down services..."
-    kill $NGINX_PID $BACKEND_PID 2>/dev/null
-    wait $NGINX_PID $BACKEND_PID 2>/dev/null
-    echo "✅ Shutdown complete"
+    echo "Shutting down..."
+    kill $BACKEND_PID $NGINX_PID 2>/dev/null || true
+    wait $BACKEND_PID $NGINX_PID 2>/dev/null || true
+    echo "Shutdown complete"
     exit 0
 }
 
-# Trap signals
-trap shutdown SIGTERM SIGINT
+trap shutdown SIGTERM SIGINT SIGQUIT
 
-# Wait for both processes
-wait $NGINX_PID $BACKEND_PID
+# Ждём любой из процессов (главное — не упасть)
+wait -n $NGINX_PID $BACKEND_PID || true
+shutdown
