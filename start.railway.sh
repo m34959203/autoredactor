@@ -30,9 +30,9 @@ sleep 3
 echo "Starting FastAPI Backend на порту $BACKEND_PORT..."
 
 # Самое важное — правильный путь к модулю и рабочая директория!
-cd /app/backend
+cd /app
 
-# Правильная команда (backend.app.main:app — потому что мы в /app/backend)
+# Правильная команда (backend.app.main:app — запускаем из /app)
 exec uvicorn backend.app.main:app \
     --host 0.0.0.0 \
     --port $BACKEND_PORT \
