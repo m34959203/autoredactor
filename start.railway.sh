@@ -29,11 +29,12 @@ sleep 3
 # ──────────────────────────────────────────────────────────────
 echo "Starting FastAPI Backend на порту $BACKEND_PORT..."
 
-# Самое важное — правильный путь к модулю и рабочая директория!
-cd /app
+# Важно: добавляем /app/backend в PYTHONPATH, чтобы импорты работали
+export PYTHONPATH="/app/backend:$PYTHONPATH"
+cd /app/backend
 
-# Правильная команда (backend.app.main:app — запускаем из /app)
-exec uvicorn backend.app.main:app \
+# Правильная команда (app.main:app — запускаем из /app/backend с PYTHONPATH)
+exec uvicorn app.main:app \
     --host 0.0.0.0 \
     --port $BACKEND_PORT \
     --workers 1 \
