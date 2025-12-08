@@ -16,6 +16,10 @@ class Settings(BaseSettings):
         if self.DATABASE_URL.startswith("postgresql://"):
             self.DATABASE_URL = self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
+        # Allow all origins in production (Railway/Render)
+        if os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("RENDER"):
+            self.CORS_ORIGINS = ["*"]
+
     # S3 Storage
     S3_ENDPOINT: str = "https://s3.amazonaws.com"
     S3_BUCKET: str = "journal-archive"

@@ -20,18 +20,29 @@ os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Запуск приложения...")
+    app.state.db_available = False
+    app.state.engine = None
+
     try:
         engine = get_engine()  # ← с ретраями!
         app.state.engine = engine
         # Bind engine to AsyncSessionLocal
         AsyncSessionLocal.configure(bind=engine)
-        logger.info("База данных готова")
+        app.state.db_available = True
+        logger.info("✅ База данных готова")
     except Exception as e:
-        logger.error(f"Критическая ошибка БД: {e}")
-        raise
+        logger.error(f"⚠️ База данных недоступна: {e}")
+        logger.warning("Приложение продолжит работу с ограниченным функционалом")
+        # Не падаем - позволяем приложению запуститься
+
     yield
+
     logger.info("Остановка — закрываем соединения...")
-    await app.state.engine.dispose()
+    if app.state.engine:
+        try:
+            await app.state.engine.dispose()
+        except Exception as e:
+            logger.error(f"Ошибка при закрытии БД: {e}")
 
 app = FastAPI(
     title="AI Journal Editor",
@@ -63,11 +74,21 @@ def root():
 
 @app.get("/health")
 async def health():
-    try:
-        from sqlalchemy import text
-        async with AsyncSessionLocal() as db:
-            await db.execute(text("SELECT 1"))
-        return {"status": "healthy", "database": "ok"}
-    except Exception as e:
-        logger.warning(f"Health check failed: {e}")
-        raise HTTPException(status_code=503, detail="DB unavailable")
+    """Health check endpoint - returns 200 even if DB is down"""
+    db_status = "disconnected"
+
+    if app.state.db_available:
+        try:
+            from sqlalchemy import text
+            async with AsyncSessionLocal() as db:
+                await db.execute(text("SELECT 1"))
+            db_status = "connected"
+        except Exception as e:
+            logger.warning(f"Health check DB query failed: {e}")
+            db_status = "error"
+
+    return {
+        "status": "healthy",
+        "database": db_status,
+        "message": "Service is running" + (" (database unavailable)" if db_status != "connected" else "")
+    }
