@@ -3,14 +3,23 @@ import os
 import time
 import logging
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine, async_sessionmaker, AsyncSession
+from sqlalchemy.orm import declarative_base
+from sqlalchemy import text
 
 logger = logging.getLogger("autoredactor")
+
+# Declarative base for models
+Base = declarative_base()
 
 def get_engine() -> AsyncEngine:
     """Создаёт engine с ретраями — только эта функция используется при старте"""
     url = os.getenv("DATABASE_URL")
     if not url:
         raise RuntimeError("Переменная DATABASE_URL не установлена!")
+
+    # Convert postgresql:// to postgresql+asyncpg://
+    if url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
     for attempt in range(1, 21):
         try:
@@ -25,7 +34,7 @@ def get_engine() -> AsyncEngine:
             import asyncio
             async def test():
                 async with engine.begin() as conn:
-                    await conn.execute("SELECT 1")
+                    await conn.execute(text("SELECT 1"))
             asyncio.run(test())
             logger.info("Подключение к PostgreSQL установлено")
             return engine
@@ -39,8 +48,19 @@ def get_engine() -> AsyncEngine:
 
 # Создаём sessionmaker (будет инициализирован в lifespan)
 AsyncSessionLocal = async_sessionmaker(
-    bind=None,  # будет заменён в main.py
     class_=AsyncSession,
     expire_on_commit=False,
     autoflush=False,
 )
+
+# Alias for backward compatibility
+async_session_maker = AsyncSessionLocal
+
+# Dependency for FastAPI routes
+async def get_db():
+    """Database session dependency"""
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()

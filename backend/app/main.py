@@ -23,7 +23,8 @@ async def lifespan(app: FastAPI):
     try:
         engine = get_engine()  # ← с ретраями!
         app.state.engine = engine
-        app.state.SessionLocal = AsyncSessionLocal.bind(engine)  # важно!
+        # Bind engine to AsyncSessionLocal
+        AsyncSessionLocal.configure(bind=engine)
         logger.info("База данных готова")
     except Exception as e:
         logger.error(f"Критическая ошибка БД: {e}")
@@ -63,8 +64,9 @@ def root():
 @app.get("/health")
 async def health():
     try:
-        async with app.state.SessionLocal() as db:
-            await db.execute("SELECT 1")
+        from sqlalchemy import text
+        async with AsyncSessionLocal() as db:
+            await db.execute(text("SELECT 1"))
         return {"status": "healthy", "database": "ok"}
     except Exception as e:
         logger.warning(f"Health check failed: {e}")
