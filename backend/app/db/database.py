@@ -15,11 +15,16 @@ def get_engine() -> AsyncEngine:
     """Создаёт engine с ретраями — только эта функция используется при старте"""
     url = os.getenv("DATABASE_URL")
     if not url:
+        logger.error("❌ DATABASE_URL не установлена в переменных окружения!")
         raise RuntimeError("Переменная DATABASE_URL не установлена!")
 
     # Convert postgresql:// to postgresql+asyncpg://
     if url.startswith("postgresql://"):
         url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+    # Log connection attempt (without password)
+    safe_url = url.split('@')[1] if '@' in url else url
+    logger.info(f"🔌 Подключение к базе данных: {safe_url}")
 
     for attempt in range(1, 21):
         try:
@@ -36,14 +41,14 @@ def get_engine() -> AsyncEngine:
                 async with engine.begin() as conn:
                     await conn.execute(text("SELECT 1"))
             asyncio.run(test())
-            logger.info("Подключение к PostgreSQL установлено")
+            logger.info("✅ Подключение к PostgreSQL установлено")
             return engine
         except Exception as e:
             if attempt == 20:
-                logger.error("Не удалось подключиться к БД после 20 попыток")
+                logger.error(f"❌ Не удалось подключиться к БД после 20 попыток: {str(e)}")
                 raise
             wait = min(2 ** attempt, 30)
-            logger.warning(f"Попытка {attempt}/20: БД недоступна — ждём {wait}с...")
+            logger.warning(f"⏳ Попытка {attempt}/20: БД недоступна ({str(e)[:100]}) — ждём {wait}с...")
             time.sleep(wait)
 
 # Создаём sessionmaker (будет инициализирован в lifespan)
